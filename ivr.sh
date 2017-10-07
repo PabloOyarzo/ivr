@@ -1,10 +1,46 @@
 #!/bin/bash
 
+PATH=/bin:/usr/bin
+
 CURRENT_STATUS=0
 VOLTAGE_STATUS=0
 RESISTANCE_STATUS=0
 
 #sed -r 's/[0-9]+/& /' | sed -r 's/[a-z]+/& /' | awk -F " " {'print $2'} | sed -r 's/[a-z]/& /' ;
+Preffix_Manager() {
+  case "$PREFFIX" in
+    T)
+      echo 1000000000000
+      ;;
+    G)
+      echo 1000000000
+      ;;
+    M)
+      echo 1000000
+      ;;
+    k)
+      echo 1000
+      ;;
+    "")
+      echo 1
+      ;;
+    m)
+      echo 0.001
+      ;;
+    u)
+      echo 0.000001
+      ;;
+    n)
+      echo 0.000000001
+      ;;
+    p)
+      echo 0.000000000001
+      ;;
+    *)
+      echo "Sorry, not available"
+      exit 1
+  esac
+}
 
 Current_Func() {
   echo -n "Insert I (current)" ; echo
@@ -12,8 +48,9 @@ Current_Func() {
   if [[ -z $answer ]]; then
     return 1
   fi
-  I_VALUE=$(echo "$answer" | sed -r 's/[0-9]+/& /' | sed -r 's/[a-z]+/& /' | awk -F " " {'print $1'})
-  I_PREFFIX=$(echo "$answer" | sed -r 's/[0-9]+/& /' | sed -r 's/[a-z]+/& /' | awk -F " " {'print $2'})
+  VALUE=$(echo "$answer" | sed -r 's/[0-9]+/& /' | sed -r 's/[a-z]+/& /' | awk -F " " {'print $1'})
+  PREFFIX=$(echo "$answer" | sed -r 's/[0-9]+/& /' | sed -r 's/[a-z]+/&/' | awk -F " " {'print $2'})
+  I_VALUE=$(echo "$VALUE * $(Preffix_Manager)" | bc)
 }
 
 Voltage_Func() {
@@ -22,8 +59,9 @@ Voltage_Func() {
   if [[ -z $answer ]]; then
     return 1
   fi
-  V_VALUE=$(echo "$answer" | sed -r 's/[0-9]+/& /' | sed -r 's/[a-z]+/& /' | awk -F " " {'print $1'})
-  V_PREFFIX=$(echo "$answer" | sed -r 's/[0-9]+/& /' | sed -r 's/[a-z]+/& /' | awk -F " " {'print $2'})
+  VALUE=$(echo "$answer" | sed -r 's/[0-9]+/& /' | sed -r 's/[a-z]+/& /' | awk -F " " {'print $1'})
+  PREFFIX=$(echo "$answer" | sed -r 's/[0-9]+/& /' | sed -r 's/[a-z]+/&/' | awk -F " " {'print $2'})
+  V_VALUE=$(echo "$VALUE * $(Preffix_Manager)" | bc)
 }
 
 Resistance_Func() {
@@ -32,8 +70,9 @@ Resistance_Func() {
   if [[ -z $answer ]]; then
     return 1
   fi
-  R_VALUE=$(echo "$answer" | sed -r 's/[0-9]+/& /' | sed -r 's/[a-z]+/& /' | awk -F " " {'print $1'})
-  R_PREFFIX=$(echo "$answer" | sed -r 's/[0-9]+/& /' | sed -r 's/[a-z]+/& /' | awk -F " " {'print $2'})
+  VALUE=$(echo "$answer" | sed -r 's/[0-9]+/& /' | sed -r 's/[a-z]+/& /' | awk -F " " {'print $1'})
+  PREFFIX=$(echo "$answer" | sed -r 's/[0-9]+/& /' | sed -r 's/[a-z]+/&/' | awk -F " " {'print $2'})
+  R_VALUE=$(echo "$VALUE * $(Preffix_Manager)" | bc)
 }
 
 if Current_Func; then
@@ -50,13 +89,13 @@ fi
 
 
 if [[ $CURRENT_STATUS == $VOLTAGE_STATUS ]]; then
-  echo $(($V_VALUE/$I_VALUE))
+  echo "$V_VALUE/$I_VALUE" | bc
 fi
 
 if [[ $CURRENT_STATUS == $RESISTANCE_STATUS ]]; then
-  echo $(($I_VALUE*$R_VALUE))
+  echo "$I_VALUE*$R_VALUE" | bc
 fi
 
 if [[ $VOLTAGE_STATUS == $RESISTANCE_STATUS ]]; then
-  echo $(($V_VALUE/$R_VALUE))
+  echo "$V_VALUE/$R_VALUE" | bc
 fi
