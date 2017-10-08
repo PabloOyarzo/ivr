@@ -83,19 +83,21 @@ if Voltage_Func; then
   VOLTAGE_STATUS=1
 fi
 
+if [[ $CURRENT_STATUS == $VOLTAGE_STATUS ]]; then
+  echo "$V_VALUE/$I_VALUE" | bc -l
+  exit 0
+fi
+
 if Resistance_Func; then
   RESISTANCE_STATUS=1
 fi
 
-
-if [[ $CURRENT_STATUS == $VOLTAGE_STATUS ]]; then
-  echo "$V_VALUE/$I_VALUE" | bc
-fi
-
 if [[ $CURRENT_STATUS == $RESISTANCE_STATUS ]]; then
-  echo "$I_VALUE*$R_VALUE" | bc
+  echo "$I_VALUE*$R_VALUE" | bc -l
+  exit 0
 fi
 
 if [[ $VOLTAGE_STATUS == $RESISTANCE_STATUS ]]; then
-  echo "$V_VALUE/$R_VALUE" | bc
+  echo "$V_VALUE/$R_VALUE" | bc -l
+  exit 0
 fi
