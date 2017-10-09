@@ -7,6 +7,8 @@ VOLTAGE_STATUS=0
 RESISTANCE_STATUS=0
 RESULT=0
 
+DOES_DECIMAL=0
+DOES_INTEGER=0
 #--------------------------------------------------
 
 #sed -r 's/[0-9]+/& /' | sed -r 's/[a-z]+/& /' | awk -F " " {'print $2'} | sed -r 's/[a-z]/& /' ;
@@ -90,29 +92,74 @@ Preffix_Result_Manager() {
   fi
 }
 
-
-Integer(){
-  exit
+Exit_Preffix_Manager(){
+  if [[ $DOES_DECIMAL == "1" ]]; then
+    case "$DECIMAL_COUNTER" in
+      3)
+        EXIT_PREFFIX="m"
+        ;;
+      6)
+        EXIT_PREFFIX="u"
+        ;;
+      9)
+        EXIT_PREFFIX="n"
+        ;;
+      12)
+        EXIT_PREFFIX="p"
+        ;;
+    esac
+  elif [[ $DOES_INTEGER == "1" ]]; then
+    case "$DECIMAL_COUNTER" in
+      3)
+        EXIT_PREFFIX="k"
+        ;;
+      6)
+        EXIT_PREFFIX="M"
+        ;;
+      9)
+        EXIT_PREFFIX="G"
+        ;;
+      12)
+        EXIT_PREFFIX="T"
+        ;;
+    esac
+  fi
 }
 
-Exit_Preffix_Manager(){
-  case "$DECIMAL_COUNTER" in
-    3)
-      EXIT_PREFFIX="m"
-      ;;
-    6)
-      EXIT_PREFFIX="u"
-      ;;
-    9)
-      EXIT_PREFFIX="n"
-      ;;
-    12)
-      EXIT_PREFFIX="p"
-      ;;
-  esac
+Integer(){
+  DOES_INTEGER=1
+  DECIMAL_COUNTER=0
+  for (( i=0; i<${#PRELIMINAR_RESULT}; i++ )); do
+    if [[ ${PRELIMINAR_RESULT:$i:1} == "." ]]; then
+      break
+    else
+      (( DECIMAL_COUNTER++ ))
+    fi
+  done
+  BEFORE_POINT=$(($DECIMAL_COUNTER%3))
+  if [[ $DECIMAL_COUNTER -le "3"  ]]; then
+    :
+  else
+    case "$(($DECIMAL_COUNTER%3))" in
+      1)
+        DECIMAL_COUNTER=$(($DECIMAL_COUNTER+2))
+        ;;
+      2)
+        DECIMAL_COUNTER=$(($DECIMAL_COUNTER+1))
+        ;;
+    esac
+  fi
+  AFTER_POINT=$(($BEFORE_POINT + 1))
+  echo $DECIMAL_COUNTER
+  Exit_Preffix_Manager
+  echo "${PRELIMINAR_RESULT:0:$BEFORE_POINT}.${PRELIMINAR_RESULT:$AFTER_POINT:3}$EXIT_PREFFIX"
+  echo "$PRELIMINAR_RESULT"
+  exit 0
+
 }
 
 Decimal(){
+  DOES_DECIMAL=1
   DECIMAL_COUNTER=0
   for (( i=1; i<${#PRELIMINAR_RESULT}; i++ )); do
     if [[ ${PRELIMINAR_RESULT:$i:1} == 0 ]]; then
@@ -130,9 +177,11 @@ Decimal(){
       case "$(($DECIMAL_COUNTER%3))" in
         1)
           DECIMAL_COUNTER=$(($DECIMAL_COUNTER+2))
+          DEC_LENGTH=2
           ;;
         2)
           DECIMAL_COUNTER=$(($DECIMAL_COUNTER+1))
+          DEC_LENGTH=1
           ;;
       esac
       Exit_Preffix_Manager
@@ -140,10 +189,10 @@ Decimal(){
     fi
   done
 
-
-  AFTER_POINT=$(( $BEFORE_POINT + 3 ))
-  echo "${PRELIMINAR_RESULT:$BEFORE_POINT:3}.${PRELIMINAR_RESULT:$AFTER_POINT:1}$EXIT_PREFFIX"
-#  echo "$PRELIMINAR_RESULT"
+  AFTER_POINT=$(( $BEFORE_POINT + $DEC_LENGTH ))
+  echo "${PRELIMINAR_RESULT:$BEFORE_POINT:$DEC_LENGTH}.${PRELIMINAR_RESULT:$AFTER_POINT:2}$EXIT_PREFFIX"
+  echo "$PRELIMINAR_RESULT"
+  exit 0
 }
 
 #--------------------------------------------------
