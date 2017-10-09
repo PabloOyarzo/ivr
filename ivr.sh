@@ -223,6 +223,6 @@ fi
 
 if [[ $VOLTAGE_STATUS == $RESISTANCE_STATUS ]]; then
   PRELIMINAR_RESULT=$(echo "$V_VALUE/$I_VALUE" | bc -l)
-  Preffix_Result_Managers
+  Preffix_Result_Manager
   exit 0
 fi
