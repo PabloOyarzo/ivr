@@ -167,11 +167,13 @@ if Resistance_Func; then
 fi
 
 if [[ $CURRENT_STATUS == $RESISTANCE_STATUS ]]; then
-  echo "$I_VALUE*$R_VALUE" | bc -l
+  PRELIMINAR_RESULT=$(echo "$V_VALUE/$I_VALUE" | bc -l)
+  Preffix_Result_Manager
   exit 0
 fi
 
 if [[ $VOLTAGE_STATUS == $RESISTANCE_STATUS ]]; then
-  echo "$V_VALUE/$R_VALUE" | bc -l
+  PRELIMINAR_RESULT=$(echo "$V_VALUE/$I_VALUE" | bc -l)
+  Preffix_Result_Managers
   exit 0
 fi
