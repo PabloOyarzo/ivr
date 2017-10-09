@@ -5,9 +5,12 @@ PATH=/bin:/usr/bin
 CURRENT_STATUS=0
 VOLTAGE_STATUS=0
 RESISTANCE_STATUS=0
+RESULT=0
+
+#--------------------------------------------------
 
 #sed -r 's/[0-9]+/& /' | sed -r 's/[a-z]+/& /' | awk -F " " {'print $2'} | sed -r 's/[a-z]/& /' ;
-Preffix_Manager() {
+Preffix_Operator_DETECTOR() {
   case "$PREFFIX" in
     T)
       echo 1000000000000
@@ -42,6 +45,8 @@ Preffix_Manager() {
   esac
 }
 
+#--------------------------------------------------
+
 Current_Func() {
   echo -n "Insert I (current)" ; echo
   read answer
@@ -50,7 +55,7 @@ Current_Func() {
   fi
   VALUE=$(echo "$answer" | sed -r 's/[0-9]+/& /' | sed -r 's/[a-z]+/& /' | awk -F " " {'print $1'})
   PREFFIX=$(echo "$answer" | sed -r 's/[0-9]+/& /' | sed -r 's/[a-z]+/&/' | awk -F " " {'print $2'})
-  I_VALUE=$(echo "$VALUE * $(Preffix_Manager)" | bc)
+  I_VALUE=$(echo "$VALUE * $(Preffix_Operator_DETECTOR)" | bc)
 }
 
 Voltage_Func() {
@@ -61,7 +66,7 @@ Voltage_Func() {
   fi
   VALUE=$(echo "$answer" | sed -r 's/[0-9]+/& /' | sed -r 's/[a-z]+/& /' | awk -F " " {'print $1'})
   PREFFIX=$(echo "$answer" | sed -r 's/[0-9]+/& /' | sed -r 's/[a-z]+/&/' | awk -F " " {'print $2'})
-  V_VALUE=$(echo "$VALUE * $(Preffix_Manager)" | bc)
+  V_VALUE=$(echo "$VALUE * $(Preffix_Operator_DETECTOR)" | bc)
 }
 
 Resistance_Func() {
@@ -72,8 +77,76 @@ Resistance_Func() {
   fi
   VALUE=$(echo "$answer" | sed -r 's/[0-9]+/& /' | sed -r 's/[a-z]+/& /' | awk -F " " {'print $1'})
   PREFFIX=$(echo "$answer" | sed -r 's/[0-9]+/& /' | sed -r 's/[a-z]+/&/' | awk -F " " {'print $2'})
-  R_VALUE=$(echo "$VALUE * $(Preffix_Manager)" | bc)
+  R_VALUE=$(echo "$VALUE * $(Preffix_Operator_DETECTOR)" | bc)
 }
+
+#--------------------------------------------------
+
+Preffix_Result_Manager() {
+  if [[ $( echo $PRELIMINAR_RESULT | awk -F "" {'print $1'} ) == "." ]]; then
+    Decimal
+  else
+    Integer
+  fi
+}
+
+
+Integer(){
+  exit
+}
+
+Exit_Preffix_Manager(){
+  case "$DECIMAL_COUNTER" in
+    3)
+      EXIT_PREFFIX="m"
+      ;;
+    6)
+      EXIT_PREFFIX="u"
+      ;;
+    9)
+      EXIT_PREFFIX="n"
+      ;;
+    12)
+      EXIT_PREFFIX="p"
+      ;;
+  esac
+}
+
+Decimal(){
+  DECIMAL_COUNTER=0
+  for (( i=1; i<${#PRELIMINAR_RESULT}; i++ )); do
+    if [[ ${PRELIMINAR_RESULT:$i:1} == 0 ]]; then
+      (( DECIMAL_COUNTER++ ))
+    else
+      break
+    fi
+  done
+  BEFORE_POINT=$(( $DECIMAL_COUNTER + 1 ))
+  for (( i = 0; i < 10; i++ )); do
+    if [[ $(($DECIMAL_COUNTER%3)) == "0" ]]; then
+      Exit_Preffix_Manager
+      break
+    else
+      case "$(($DECIMAL_COUNTER%3))" in
+        1)
+          DECIMAL_COUNTER=$(($DECIMAL_COUNTER+2))
+          ;;
+        2)
+          DECIMAL_COUNTER=$(($DECIMAL_COUNTER+1))
+          ;;
+      esac
+      Exit_Preffix_Manager
+      break
+    fi
+  done
+
+
+  AFTER_POINT=$(( $BEFORE_POINT + 3 ))
+  echo "${PRELIMINAR_RESULT:$BEFORE_POINT:3}.${PRELIMINAR_RESULT:$AFTER_POINT:1}$EXIT_PREFFIX"
+#  echo "$PRELIMINAR_RESULT"
+}
+
+#--------------------------------------------------
 
 if Current_Func; then
   CURRENT_STATUS=1
@@ -84,7 +157,8 @@ if Voltage_Func; then
 fi
 
 if [[ $CURRENT_STATUS == $VOLTAGE_STATUS ]]; then
-  echo "$V_VALUE/$I_VALUE" | bc -l
+  PRELIMINAR_RESULT=$(echo "$V_VALUE/$I_VALUE" | bc -l)
+  Preffix_Result_Manager
   exit 0
 fi
 
