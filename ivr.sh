@@ -92,40 +92,6 @@ Preffix_Result_Manager() {
   fi
 }
 
-Exit_Preffix_Manager(){
-  if [[ $DOES_DECIMAL == "1" ]]; then
-    case "$DECIMAL_COUNTER" in
-      3)
-        EXIT_PREFFIX="m"
-        ;;
-      6)
-        EXIT_PREFFIX="u"
-        ;;
-      9)
-        EXIT_PREFFIX="n"
-        ;;
-      12)
-        EXIT_PREFFIX="p"
-        ;;
-    esac
-  elif [[ $DOES_INTEGER == "1" ]]; then
-    case "$DECIMAL_COUNTER" in
-      3)
-        EXIT_PREFFIX="k"
-        ;;
-      6)
-        EXIT_PREFFIX="M"
-        ;;
-      9)
-        EXIT_PREFFIX="G"
-        ;;
-      12)
-        EXIT_PREFFIX="T"
-        ;;
-    esac
-  fi
-}
-
 Integer(){
   DOES_INTEGER=1
   DECIMAL_COUNTER=0
@@ -136,8 +102,6 @@ Integer(){
       (( DECIMAL_COUNTER++ ))
     fi
   done
-
-#  echo "Decimal Counter $DECIMAL_COUNTER"
 
   for (( i = 0; i < 10; i++ )); do
     if [[ $DECIMAL_COUNTER -lt "3"  ]]; then
@@ -179,10 +143,16 @@ Integer(){
     fi
   done
 
-  AFTER_POINT=$(($BEFORE_LENGTH + 1))
+  if [[ ${PRELIMINAR_RESULT:$BEFORE_LENGTH:1} == "." ]]; then
+    AFTER_POINT=$(($BEFORE_LENGTH + 1))
+  else
+    AFTER_POINT=$BEFORE_LENGTH
+  fi
+
   Exit_Preffix_Manager
+  echo
   echo "${PRELIMINAR_RESULT:0:$BEFORE_LENGTH}.${PRELIMINAR_RESULT:$AFTER_POINT:2}$EXIT_PREFFIX"
-  echo "$PRELIMINAR_RESULT"
+#  echo "$PRELIMINAR_RESULT"
   exit 0
 
 }
@@ -223,9 +193,44 @@ Decimal(){
   done
 
   AFTER_POINT=$(($BEFORE_POINT+$DEC_LENGTH))
+  echo
   echo "${PRELIMINAR_RESULT:$BEFORE_POINT:$DEC_LENGTH}.${PRELIMINAR_RESULT:$AFTER_POINT:2}$EXIT_PREFFIX"
-  echo "$PRELIMINAR_RESULT"
+#  echo "$PRELIMINAR_RESULT"
   exit 0
+}
+
+Exit_Preffix_Manager(){
+  if [[ $DOES_DECIMAL == "1" ]]; then
+    case "$DECIMAL_COUNTER" in
+      3)
+        EXIT_PREFFIX="m"
+        ;;
+      6)
+        EXIT_PREFFIX="u"
+        ;;
+      9)
+        EXIT_PREFFIX="n"
+        ;;
+      12)
+        EXIT_PREFFIX="p"
+        ;;
+    esac
+  elif [[ $DOES_INTEGER == "1" ]]; then
+    case "$DECIMAL_COUNTER" in
+      3)
+        EXIT_PREFFIX="k"
+        ;;
+      6)
+        EXIT_PREFFIX="M"
+        ;;
+      9)
+        EXIT_PREFFIX="G"
+        ;;
+      12)
+        EXIT_PREFFIX="T"
+        ;;
+    esac
+  fi
 }
 
 #--------------------------------------------------
@@ -238,6 +243,7 @@ if Voltage_Func; then
   VOLTAGE_STATUS=1
 fi
 
+#Resistance
 if [[ $CURRENT_STATUS == $VOLTAGE_STATUS ]]; then
   PRELIMINAR_RESULT=$(echo "$V_VALUE/$I_VALUE" | bc -l)
   Preffix_Result_Manager
@@ -248,14 +254,16 @@ if Resistance_Func; then
   RESISTANCE_STATUS=1
 fi
 
+#Voltage
 if [[ $CURRENT_STATUS == $RESISTANCE_STATUS ]]; then
-  PRELIMINAR_RESULT=$(echo "$V_VALUE/$I_VALUE" | bc -l)
+  PRELIMINAR_RESULT=$(echo "$I_VALUE*$R_VALUE" | bc -l)
   Preffix_Result_Manager
   exit 0
 fi
 
+#Current
 if [[ $VOLTAGE_STATUS == $RESISTANCE_STATUS ]]; then
-  PRELIMINAR_RESULT=$(echo "$V_VALUE/$I_VALUE" | bc -l)
+  PRELIMINAR_RESULT=$(echo "$V_VALUE/$R_VALUE" | bc -l)
   Preffix_Result_Manager
   exit 0
 fi
