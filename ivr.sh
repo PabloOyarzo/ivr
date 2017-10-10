@@ -48,7 +48,7 @@ Preffix_Operator_DETECTOR() {
 }
 
 #--------------------------------------------------
-
+#Fix Pending detect decimals
 Current_Func() {
   echo -n "Insert I (current)" ; echo
   read answer
@@ -136,23 +136,52 @@ Integer(){
       (( DECIMAL_COUNTER++ ))
     fi
   done
-  BEFORE_POINT=$(($DECIMAL_COUNTER%3))
-  if [[ $DECIMAL_COUNTER -le "3"  ]]; then
-    :
-  else
-    case "$(($DECIMAL_COUNTER%3))" in
-      1)
-        DECIMAL_COUNTER=$(($DECIMAL_COUNTER+2))
-        ;;
-      2)
-        DECIMAL_COUNTER=$(($DECIMAL_COUNTER+1))
-        ;;
-    esac
-  fi
-  AFTER_POINT=$(($BEFORE_POINT + 1))
-  echo $DECIMAL_COUNTER
+
+  echo "Decimal Counter $DECIMAL_COUNTER"
+
+  for (( i = 0; i < 10; i++ )); do
+    if [[ $DECIMAL_COUNTER -lt "3"  ]]; then
+      case "$(($DECIMAL_COUNTER%3))" in
+        1)
+          BEFORE_LENGTH=1
+          DECIMAL_COUNTER=0
+          break
+          ;;
+        2)
+          BEFORE_LENGTH=2
+          DECIMAL_COUNTER=0
+          break
+          ;;
+      esac
+    elif [[ $DECIMAL_COUNTER -eq "3" ]]; then
+      BEFORE_LENGTH=3
+      DECIMAL_COUNTER=0
+      break
+    elif [[ $DECIMAL_COUNTER -gt "3" ]]; then
+      case "$(($DECIMAL_COUNTER%3))" in
+        1)
+          BEFORE_LENGTH=1
+          DECIMAL_COUNTER=$(($DECIMAL_COUNTER-1))
+          break
+          ;;
+        2)
+          BEFORE_LENGTH=2
+          DECIMAL_COUNTER=$(($DECIMAL_COUNTER-2))
+          break
+          ;;
+        0)
+          BEFORE_LENGTH=3
+          DECIMAL_COUNTER=$(($DECIMAL_COUNTER-3))
+          break
+          ;;
+      esac
+      break
+    fi
+  done
+
+  AFTER_POINT=$(($BEFORE_LENGTH + 1))
   Exit_Preffix_Manager
-  echo "${PRELIMINAR_RESULT:0:$BEFORE_POINT}.${PRELIMINAR_RESULT:$AFTER_POINT:3}$EXIT_PREFFIX"
+  echo "${PRELIMINAR_RESULT:0:$BEFORE_LENGTH}.${PRELIMINAR_RESULT:$AFTER_POINT:2}$EXIT_PREFFIX"
   echo "$PRELIMINAR_RESULT"
   exit 0
 
@@ -161,6 +190,8 @@ Integer(){
 Decimal(){
   DOES_DECIMAL=1
   DECIMAL_COUNTER=0
+  DEC_LENGTH=0
+
   for (( i=1; i<${#PRELIMINAR_RESULT}; i++ )); do
     if [[ ${PRELIMINAR_RESULT:$i:1} == 0 ]]; then
       (( DECIMAL_COUNTER++ ))
@@ -168,7 +199,9 @@ Decimal(){
       break
     fi
   done
+
   BEFORE_POINT=$(( $DECIMAL_COUNTER + 1 ))
+
   for (( i = 0; i < 10; i++ )); do
     if [[ $(($DECIMAL_COUNTER%3)) == "0" ]]; then
       Exit_Preffix_Manager
@@ -189,7 +222,7 @@ Decimal(){
     fi
   done
 
-  AFTER_POINT=$(( $BEFORE_POINT + $DEC_LENGTH ))
+  AFTER_POINT=$(($BEFORE_POINT+$DEC_LENGTH))
   echo "${PRELIMINAR_RESULT:$BEFORE_POINT:$DEC_LENGTH}.${PRELIMINAR_RESULT:$AFTER_POINT:2}$EXIT_PREFFIX"
   echo "$PRELIMINAR_RESULT"
   exit 0
