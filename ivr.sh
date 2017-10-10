@@ -137,7 +137,7 @@ Integer(){
     fi
   done
 
-  echo "Decimal Counter $DECIMAL_COUNTER"
+#  echo "Decimal Counter $DECIMAL_COUNTER"
 
   for (( i = 0; i < 10; i++ )); do
     if [[ $DECIMAL_COUNTER -lt "3"  ]]; then
