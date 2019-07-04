@@ -2,7 +2,8 @@
 Command line tool to calculate Ohm's Law values
 
 ## Why?
-Just to calculate Ohm's Law values for resistances using Voltage and Current values
+Just to test my bash scripting capabilities.
+I thought that calculating Ohm's Law for resistances using Voltage and Current values would be a good start.
 
 ## How to use it?
 ```
